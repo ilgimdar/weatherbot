@@ -4,3 +4,4 @@ beautifulsoup4==4.10.0
 transliterate==1.10.2
 geopy==2.2.0
 pyTelegramBotAPI==4.2.2
+translate==3.6.1

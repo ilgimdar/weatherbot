@@ -7,11 +7,13 @@ from transliterate import translit
 from geopy.geocoders import Nominatim
 from telebot import types
 from db import BotDB
+from translate import Translator
 
 bot = telebot.TeleBot(config.TOKEN)
 url = config.google_url
 geolocator = Nominatim(user_agent="superWheatherBot")
 BotDB = BotDB('static/accountant.db')
+translator = Translator(to_lang='en', from_lang='ru')
 
 
 @bot.message_handler(commands=['start'])
@@ -26,7 +28,7 @@ def welcome(message):
     if not BotDB.user_exists(message.chat.id):
         BotDB.add_user(message.from_user.id)
         bot.send_message(message.chat.id,
-                         "Привет, {0.first_name}! Я бот-помощник, который знает погоду в любой точке земного шара. Конечно, работаю не без помощи Интернета, но это уже мелочи".format(
+                         "Привет, {0.first_name}! Я бот-помощник, который знает погоду во всей России. Конечно, работаю не без помощи Интернета, но это уже мелочи".format(
                              message.from_user, bot.get_me()), parse_mode='html', reply_markup=markup)
     else:
         bot.send_message(message.chat.id,
@@ -130,23 +132,16 @@ def location(message):
 def get_html(url, plus):
     s = requests.Session()
     print(url, plus, url + plus)
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0',
-               'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-               'Accept-Language': 'en-US,en;q=0.5',
-               'Accept-Encoding': 'gzip, deflate',
-               'DNT': '1',
-               'Connection': 'keep-alive',
-               'Upgrade-Insecure-Requests': '1'}
-    req = s.get(url + plus, headers=headers)
+    req = s.get(url + plus)
     soup = BeautifulSoup(req.text, 'html.parser')
     return soup
 
 
 def get_wheather(city):
     global url
-    plus = cyr_to_google('погода') + '+' + cyr_to_google('в') + '+' + cyr_to_google(city)
+    plus = translator.translate(city)
     output = get_html(url, plus)
-    print(output)
+    print(output.prettify())
     temp = get_temp(output)
     message = 'Населенный пункт: ' + city + ' \n'
     message += 'Температура: ' + temp + '\n'''
@@ -154,22 +149,9 @@ def get_wheather(city):
 
 
 def get_temp(html_text):
-    temp_block = html_text.find('div', {'class': 'BNeawe iBp4i AP7Wnd'})
+    temp_block = html_text.find('span', {'class': 'txt-xxlarge'})
+    print(str(temp_block))
     return str(temp_block.text)
-
-
-def cyr_to_google(word):
-    word1 = str(word.encode('utf-8'))[2:-1]
-    word_ans = ''
-    i = 0
-    while i < len(word1):
-        if ord(word1[i]) == 92:
-            i += 1
-            word_ans += '%'
-        else:
-            word_ans += word1[i].upper()
-        i += 1
-    return word_ans
 
 
 def search_weather(message, alt):
