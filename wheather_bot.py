@@ -139,6 +139,7 @@ def get_wheather(city):
     global url
     plus = cyr_to_google('погода') + '+' + cyr_to_google('в') + '+' + cyr_to_google(city)
     output = get_html(url, plus)
+    print(output)
     temp = get_temp(output)
     message = 'Населенный пункт: ' + city + ' \n'
     message += 'Температура: ' + temp + '\n'''
