@@ -130,7 +130,10 @@ def location(message):
 def get_html(url, plus):
     s = requests.Session()
     print(url, plus, url + plus)
-    req = s.get(url + plus)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit537.36(KHTML, like Gecko) Chrome",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q = 0.9, image / webp, * / *;q = 0.8"}
+    req = s.get(url + plus, headers=headers)
     soup = BeautifulSoup(req.text, 'html.parser')
     return soup
 
