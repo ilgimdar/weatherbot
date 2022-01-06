@@ -172,7 +172,6 @@ def search_weather(message, alt):
             BotDB.add_city(message.chat.id, alt)
         else:
             BotDB.set_city(message.chat.id, alt)
-        BotDB.set_city(message.chat.id, alt)
         m_to_send = get_wheather(alt)
         bot.send_message(message.chat.id, m_to_send)
         return
