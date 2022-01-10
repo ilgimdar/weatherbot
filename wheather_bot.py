@@ -151,7 +151,21 @@ def get_wheather(city):
 def get_temp(html_text):
     temp_block = html_text.find('span', {'class': 'txt-xxlarge'})
     print(str(temp_block))
-    return str(temp_block.text)
+    ans = ''
+    temp_part = ''
+    sign_part = ''
+    i = 0
+    for temps in temp_block:
+        if i == 0:
+            temp_part = temps.text
+        else:
+            sign_part = temps.text
+        i += 1
+    temperature = int(temp_part)
+    if 'F' in sign_part:
+        temperature = int((temperature - 32) * (5 / 9))
+        sign_part = '°С'
+    return str(temperature) + ' ' + sign_part
 
 
 def search_weather(message, alt):
