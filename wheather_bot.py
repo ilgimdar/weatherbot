@@ -10,10 +10,11 @@ from db import BotDB
 from translate import Translator
 
 bot = telebot.TeleBot(config.TOKEN)
-url = config.google_url
+url = config.url
 geolocator = Nominatim(user_agent="superWheatherBot")
 BotDB = BotDB('static/accountant.db')
 translator = Translator(to_lang='en', from_lang='ru')
+s = requests.Session()
 
 
 @bot.message_handler(commands=['start'])
@@ -130,17 +131,25 @@ def location(message):
 
 
 def get_html(url, plus):
-    s = requests.Session()
-    print(url, plus, url + plus)
-    req = s.get(url + plus)
+    global s
+    headers = {
+        'x-user-agent': "desktop",
+        'x-proxy-location': "US",
+        'x-rapidapi-host': "google-search3.p.rapidapi.com",
+        'x-rapidapi-key': "5611131226msh9e78db53f476b4ep15a23bjsn7498bda906eb"
+    }
+    addlink = cyr_to_google('погода') + '+' + cyr_to_google('в') + '+' + cyr_to_google(
+        plus)
+    print(url + addlink)
+    req = s.get(url + addlink, headers=headers)
+
     soup = BeautifulSoup(req.text, 'html.parser')
     return soup
 
 
 def get_wheather(city):
     global url
-    plus = translator.translate(city)
-    output = get_html(url, plus)
+    output = get_html(url, city)
     print(output.prettify())
     temp = get_temp(output)
     message = 'Населенный пункт: ' + city + ' \n'
@@ -149,23 +158,11 @@ def get_wheather(city):
 
 
 def get_temp(html_text):
-    temp_block = html_text.find('span', {'class': 'txt-xxlarge'})
-    print(str(temp_block))
-    ans = ''
-    temp_part = ''
-    sign_part = ''
-    i = 0
-    for temps in temp_block:
-        if i == 0:
-            temp_part = temps.text
-        else:
-            sign_part = temps.text
-        i += 1
-    temperature = int(temp_part)
-    if 'F' in sign_part:
-        temperature = int((temperature - 32) * (5 / 9))
-        sign_part = '°С'
-    return str(temperature) + ' ' + sign_part
+    info = str(html_text)
+    info = info[info.find("link") + 7:]
+    gismeteo_url = info[:info.find('"')]
+    asnswer = get_gismeteo(gismeteo_url)
+    return asnswer
 
 
 def search_weather(message, alt):
@@ -183,6 +180,36 @@ def search_weather(message, alt):
         print(e)
         bot.send_message(message.chat.id, "К сожалению, в вашем городе погоду узнать не удалось")
         return
+
+
+def cyr_to_google(text):
+    ans = str(text.encode('utf-8'))[2:-1]
+    ans1 = ''
+    i = 0
+    while i < len(ans):
+        if ord(ans[i]) == 92:
+            ans1 += '%'
+            i += 1
+        elif ans[i] == '-' or ans[i] == ',' or ans[i] == ' ':
+            ans1 += '+'
+        else:
+            ans1 += ans[i]
+        i += 1
+    return ans1.upper()
+
+
+def get_gismeteo(url):
+    global s
+    if 'weekly' in url:
+        url = url[:url.find('/weekly')]
+    print(url)
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
+    req = s.get(url, headers=headers)
+    print(req, req.text)
+    soup = BeautifulSoup(req.text, 'html.parser')
+    spans = soup.find('div', {'class': 'weather-value'})
+    span1 = spans.find('span')
+    return span1.text + '°C'
 
 
 bot.polling(none_stop=True)
