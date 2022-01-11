@@ -152,9 +152,11 @@ def get_wheather(city):
     output = get_html(url, city)
     print(output.prettify())
     temp = get_temp(output)
-    message = 'Населенный пункт: ' + city + ' \n'
-    message += 'Температура: ' + temp[0] + '\n'
-    message += 'Ощущается как: ' + temp[1] + '\n'
+    message = '🌆 Населенный пункт: ' + city + ' \n'
+    message += '⛅ В целом: ' + temp[2] + '\n'
+    message += '🌡 Температура: ' + temp[0] + '\n'
+    message += '✅ Ощущается как: ' + temp[1] + '\n'
+    message += '🌪️ Ветер: ' + temp[2] + '\n'
     return message
 
 
@@ -209,11 +211,17 @@ def get_gismeteo(url):
     req = s.get(url, headers=headers)
     print(req, req.text)
     soup = BeautifulSoup(req.text, 'html.parser')
+    return get_now_info(soup)
+
+
+def get_now_info(soup):
     spans = soup.find('div', {'class': 'weather-value'})
     span1 = spans.find('span')
     w_feel = soup.find('div', {'class': 'weather-feel'})
     feel_c = w_feel.find('span', {'class': 'unit_temperature_c'})
-    ans = [span1.text + '°C', feel_c.text + '°C']
+    sky = soup.find('div', {'class': 'now-desc'})
+    wind = soup.find('div', {'class': 'now-info-item wind'})
+    ans = [span1.text + '°C', feel_c.text + '°C', sky.text, wind.text]
     return ans
 
 
