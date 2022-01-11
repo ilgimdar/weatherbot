@@ -153,16 +153,17 @@ def get_wheather(city):
     print(output.prettify())
     temp = get_temp(output)
     message = 'Населенный пункт: ' + city + ' \n'
-    message += 'Температура: ' + temp + '\n'''
+    message += 'Температура: ' + temp[0] + '\n'
+    message += 'Ощущается как: ' + temp[1] + '\n'
     return message
 
 
 def get_temp(html_text):
     info = str(html_text)
-    info = info[info.find("link") + 7:]
+    info = info[info.find("https://www.gismeteo"):]
     gismeteo_url = info[:info.find('"')]
-    asnswer = get_gismeteo(gismeteo_url)
-    return asnswer
+    answer = get_gismeteo(gismeteo_url)
+    return answer
 
 
 def search_weather(message, alt):
@@ -202,6 +203,7 @@ def get_gismeteo(url):
     global s
     if 'weekly' in url:
         url = url[:url.find('/weekly')]
+    url += '/now'
     print(url)
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
     req = s.get(url, headers=headers)
@@ -209,7 +211,10 @@ def get_gismeteo(url):
     soup = BeautifulSoup(req.text, 'html.parser')
     spans = soup.find('div', {'class': 'weather-value'})
     span1 = spans.find('span')
-    return span1.text + '°C'
+    w_feel = soup.find('div', {'class': 'weather-feel'})
+    feel_c = w_feel.find('span', {'class': 'unit_temperature_c'})
+    ans = [span1.text + '°C', feel_c.text + '°C']
+    return ans
 
 
 bot.polling(none_stop=True)
