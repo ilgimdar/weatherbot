@@ -37,7 +37,16 @@ headers = {
     'x-rapidapi-host': "google-search3.p.rapidapi.com",
     'x-rapidapi-key': "5611131226msh9e78db53f476b4ep15a23bjsn7498bda906eb"
 }
+url_new = 'https://yandex.ru/images/search?text=' + cyr_to_google('нижнекамск') + '&family=yes'
+print(url_new)
+response = requests.get(url_new)
+soup = BeautifulSoup(response.text, 'html.parser')
+print(soup.prettify())
 
-response = requests.request("GET", url + cyr_to_google('погода') + '+'+ cyr_to_google('в')+'+' + cyr_to_google('иннополис'), headers=headers)
-print(response.text)
-print(cyr_to_google('погода'))
+print('\n' * 15)
+text_first =str(soup.find('div', {'class': 'serp-item_pos_0'}))
+text_first = text_first[text_first.find('url') + 3:]
+text_first = text_first[text_first.find('url') + 6:]
+text_first = text_first[:text_first.find('"')]
+print(text_first)
+

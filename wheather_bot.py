@@ -1,13 +1,12 @@
-import telebot
-import config
 import requests
-import config
+import telebot
 from bs4 import BeautifulSoup
-from transliterate import translit
 from geopy.geocoders import Nominatim
 from telebot import types
-from db import BotDB
 from translate import Translator
+import urllib
+import config
+from db import BotDB
 
 bot = telebot.TeleBot(config.TOKEN)
 url = config.url
@@ -162,7 +161,7 @@ def get_wheather(city):
 
 def get_temp(html_text):
     info = str(html_text)
-    info = info[info.find("https://www.gismeteo"):]
+    info = info[info.find("https://www.gismeteo.ru/weather-"):]
     gismeteo_url = info[:info.find('"')]
     answer = get_gismeteo(gismeteo_url)
     return answer
@@ -178,6 +177,20 @@ def search_weather(message, alt):
             BotDB.set_city(message.chat.id, alt)
         m_to_send = get_wheather(alt)
         bot.send_message(message.chat.id, m_to_send)
+        photo_urls = get_photo_url(alt)
+        f = open('out.jpg', 'wb')
+        try:
+            f.write(urllib.request.urlopen(photo_urls[0]).read())
+            f.close()
+            img = open('out.jpg', 'rb')
+            bot.send_photo(message.chat.id, img)
+            img.close()
+        except Exception as e:
+            f.write(urllib.request.urlopen(photo_urls[1]).read())
+            f.close()
+            img = open('out.jpg', 'rb')
+            bot.send_photo(message.chat.id, img)
+            img.close()
         return
     except Exception as e:
         print(e)
@@ -223,6 +236,22 @@ def get_now_info(soup):
     wind = soup.find('div', {'class': 'now-info-item wind'})
     ans = [span1.text + '°C', feel_c.text + '°C', sky.text, wind.text]
     return ans
+
+
+def get_photo_url(city):
+    url_new = 'https://yandex.ru/images/search?text=' + cyr_to_google(city) + '&family=yes'
+    response = requests.get(url_new)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    text_second = str(soup.find('div', {'class': 'serp-item_pos_1'}))
+    text_first = str(soup.find('div', {'class': 'serp-item_pos_0'}))
+    text_first = text_first[text_first.find('url') + 3:]
+    text_second = text_second[text_second.find('url') + 3:]
+    text_first = text_first[text_first.find('url') + 6:]
+    text_second = text_second[text_second.find('url') + 6:]
+    text_first = text_first[:text_first.find('"')]
+    text_second = text_second[:text_second.find('"')]
+    print(text_first, text_second)
+    return [text_first, text_second]
 
 
 bot.polling(none_stop=True)
