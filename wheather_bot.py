@@ -217,8 +217,12 @@ def cyr_to_google(text):
 def get_gismeteo(url):
     global s
     if 'weekly' in url:
-        url = url[:url.find('weekly')]
-    url += '/now'
+        url = url[:url.find('/weekly')]
+        url += '/'
+    if '10-days' in url:
+        url = url[:url.find('/10-days')]
+        url += '/'
+    url += 'now'
     print(url)
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
     req = s.get(url, headers=headers)
