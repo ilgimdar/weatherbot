@@ -157,7 +157,7 @@ def get_wheather(city):
     message += '⛅ В целом: ' + temp[2] + '\n'
     message += '🌡 Температура: ' + temp[0] + '\n'
     message += '✅ Ощущается как: ' + temp[1] + '\n'
-    message += '🌪️ Ветер: ' + temp[2] + '\n'
+    message += '🌪️ Ветер: ' + temp[3] + '\n'
     return message
 
 
@@ -249,8 +249,9 @@ def get_now_info(soup):
     w_feel = soup.find('div', {'class': 'weather-feel'})
     feel_c = w_feel.find('span', {'class': 'unit_temperature_c'})
     sky = soup.find('div', {'class': 'now-desc'})
-    wind = soup.find('div', {'class': 'now-info-item wind'})
-    ans = [span1.text + '°C', feel_c.text + '°C', sky.text, wind.text]
+    wind = soup.find('div', {'class': 'unit unit_wind_m_s'})
+    wind_text = str(wind.text).replace('м/c',' м/c ')
+    ans = [span1.text + '°C', feel_c.text + '°C', sky.text, wind_text]
     return ans
 
 
