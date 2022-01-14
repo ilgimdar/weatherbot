@@ -189,17 +189,18 @@ def search_weather(message, alt):
         photo_urls = get_photo_url(alt)
         f = open('out.jpg', 'wb')
         try:
-            img_data = requests.get(photo_urls[0]).content
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
+            img_data = requests.get(photo_urls[0], headers=headers).content
             with open('out.jpg', 'wb') as handler:
                 handler.write(img_data)
             bot.send_photo(message.chat.id, img_data)
         except Exception as e:
             print(e)
-            f.write(urllib.request.urlopen(photo_urls[1]).read())
-            f.close()
-            img = open('out.jpg', 'rb')
-            bot.send_photo(message.chat.id, img)
-            img.close()
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
+            img_data = requests.get(photo_urls[1], headers=headers).content
+            with open('out.jpg', 'wb') as handler:
+                handler.write(img_data)
+            bot.send_photo(message.chat.id, img_data)
         return
     except Exception as e:
         print(e)
@@ -256,10 +257,13 @@ def get_now_info(soup):
 def get_photo_url(city):
     url_new = 'https://yandex.ru/images/search?text=' + cyr_to_google(city) + '&family=yes'
     print(url_new)
-    response = requests.get(url_new)
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
+    response = requests.get(url_new, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     text_second = str(soup.find('div', {'class': 'serp-item_pos_1'}))
     text_first = str(soup.find('div', {'class': 'serp-item_pos_0'}))
+    text_first = text_first[text_first.find('origin') + 5:]
+    text_second = text_second[text_second.find('origin') + 5:]
     text_first = text_first[:text_first.find('.jpg') + 4]
     text_second = text_second[:text_second.find('.jpg') + 4]
     text_first = text_first[text_first.rfind('url') + 6:]
