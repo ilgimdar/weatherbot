@@ -10,6 +10,7 @@ from translate import Translator
 import config
 from db import BotDB
 
+
 bot = telebot.TeleBot(config.TOKEN)
 url = config.url
 geolocator = Nominatim(user_agent="superWheatherBot")
@@ -259,12 +260,10 @@ def get_photo_url(city):
     soup = BeautifulSoup(response.text, 'html.parser')
     text_second = str(soup.find('div', {'class': 'serp-item_pos_1'}))
     text_first = str(soup.find('div', {'class': 'serp-item_pos_0'}))
-    text_first = text_first[:text_first.find('.jpg') + 5]
-    text_second = text_second[text_second.find('url') + 3:]
+    text_first = text_first[:text_first.find('.jpg') + 4]
+    text_second = text_second[:text_second.find('.jpg') + 4]
     text_first = text_first[text_first.rfind('url') + 6:]
-    text_second = text_second[text_second.find('url') + 6:]
-    text_first = text_first[:text_first.find('"')]
-    text_second = text_second[:text_second.find('"')]
+    text_second = text_second[text_second.rfind('url') + 6:]
     print(text_first, text_second)
     return [text_first, text_second]
 
