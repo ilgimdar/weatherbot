@@ -1,10 +1,12 @@
+import urllib
+
 import requests
 import telebot
 from bs4 import BeautifulSoup
 from geopy.geocoders import Nominatim
 from telebot import types
 from translate import Translator
-import urllib
+
 import config
 from db import BotDB
 
@@ -149,6 +151,7 @@ def get_html(url, plus):
 def get_wheather(city):
     global url
     output = get_html(url, city)
+    print('OUTPUT:')
     print(output.prettify())
     temp = get_temp(output)
     message = '🌆 Населенный пункт: ' + city + ' \n'
@@ -161,8 +164,15 @@ def get_wheather(city):
 
 def get_temp(html_text):
     info = str(html_text)
-    info = info[info.find("https://www.gismeteo.ru/weather-"):]
-    gismeteo_url = info[:info.find('"')]
+    print('find:')
+    if info.find("https://www.gismeteo.ru/weather-") != -1:
+        info = info[info.find("https://www.gismeteo.ru/weather-"):]
+        gismeteo_url = info[:info.find('"')]
+    else:
+        info = info[info.find("https://www.gismeteo.com/weather-"):]
+        gismeteo_url = info[:info.find('"')]
+        gismeteo_url = gismeteo_url.replace('.com', '.ru', 1)
+    print(gismeteo_url)
     answer = get_gismeteo(gismeteo_url)
     return answer
 
@@ -180,12 +190,12 @@ def search_weather(message, alt):
         photo_urls = get_photo_url(alt)
         f = open('out.jpg', 'wb')
         try:
-            f.write(urllib.request.urlopen(photo_urls[0]).read())
-            f.close()
-            img = open('out.jpg', 'rb')
-            bot.send_photo(message.chat.id, img)
-            img.close()
+            img_data = requests.get(photo_urls[0]).content
+            with open('out.jpg', 'wb') as handler:
+                handler.write(img_data)
+            bot.send_photo(message.chat.id, img_data)
         except Exception as e:
+            print(e)
             f.write(urllib.request.urlopen(photo_urls[1]).read())
             f.close()
             img = open('out.jpg', 'rb')
@@ -216,10 +226,10 @@ def cyr_to_google(text):
 
 def get_gismeteo(url):
     global s
-    if 'weekly' in url:
+    if '/weekly' in url:
         url = url[:url.find('/weekly')]
         url += '/'
-    if '10-days' in url:
+    if '/10-days' in url:
         url = url[:url.find('/10-days')]
         url += '/'
     url += 'now'
@@ -244,13 +254,14 @@ def get_now_info(soup):
 
 def get_photo_url(city):
     url_new = 'https://yandex.ru/images/search?text=' + cyr_to_google(city) + '&family=yes'
+    print(url_new)
     response = requests.get(url_new)
     soup = BeautifulSoup(response.text, 'html.parser')
     text_second = str(soup.find('div', {'class': 'serp-item_pos_1'}))
     text_first = str(soup.find('div', {'class': 'serp-item_pos_0'}))
-    text_first = text_first[text_first.find('url') + 3:]
+    text_first = text_first[:text_first.find('.jpg') + 5]
     text_second = text_second[text_second.find('url') + 3:]
-    text_first = text_first[text_first.find('url') + 6:]
+    text_first = text_first[text_first.rfind('url') + 6:]
     text_second = text_second[text_second.find('url') + 6:]
     text_first = text_first[:text_first.find('"')]
     text_second = text_second[:text_second.find('"')]
