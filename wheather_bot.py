@@ -234,7 +234,6 @@ def get_gismeteo(url):
     print(url)
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
     req = s.get(url, headers=headers)
-    print(req, req.text)
     soup = BeautifulSoup(req.text, 'html.parser')
     return get_now_info(soup)
 
