@@ -151,8 +151,6 @@ def get_html(url, plus):
 def get_wheather(city):
     global url
     output = get_html(url, city)
-    print('OUTPUT:')
-    print(output.prettify())
     temp = get_temp(output)
     message = '🌆 Населенный пункт: ' + city + ' \n'
     message += '⛅ В целом: ' + temp[2] + '\n'
