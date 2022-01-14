@@ -230,6 +230,9 @@ def get_gismeteo(url):
     if '/10-days' in url:
         url = url[:url.find('/10-days')]
         url += '/'
+    if '/month' in url:
+        url = url[:url.find('/month')]
+        url += '/'
     url += 'now'
     print(url)
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
